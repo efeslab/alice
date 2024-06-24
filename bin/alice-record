@@ -59,7 +59,11 @@ print "Strace elapsed time: " + str(elapsed_time)
 
 if args.verbose:
 	print 'Recording symbol information'
-subprocess.check_output("alice-strace-retrieve-symbols " + os.path.join(args.traces_dir, "strace.out"), shell = True)
+try:
+    subprocess.check_output("/home/jiexiao/squint/alice/alice/bin/alice-strace-retrieve-symbols " + os.path.join(args.traces_dir, "strace.out"), shell=True)
+except subprocess.CalledProcessError as e:
+    print("Command failed with return code:", e.returncode)
+    print("Command output:", e.output)
 
 if args.verbose:
 	print 'Recording config information'

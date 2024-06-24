@@ -126,7 +126,9 @@ def default_checks(alice_args, threads = 1):
 
 	print 'Finding vulnerabilities...'
 	start_time = time.time()
+ 
 	# Finding across-syscall atomicity
+	print "mops len" + str(replayer.mops_len())
 	for i in range(0, replayer.mops_len()):
 		dirname = os.path.join(aliceconfig().scratchpad_dir, 'reconstructeddir-' + str(i))
 		replayer.dops_end_at((i, replayer.dops_len(i) - 1))
@@ -136,6 +138,8 @@ def default_checks(alice_args, threads = 1):
 	checker_outputs = MultiThreadedChecker.wait_and_get_outputs()
 	staticvuls = dict()
 	i = 0
+ 
+	print "check count ckpt 1: " + str(replayer.check_count)
 	while(i < replayer.mops_len()):
 		if checker_outputs[i] != 0:
 			patch_start = i
@@ -162,6 +166,7 @@ def default_checks(alice_args, threads = 1):
 
 	# Finding ordering vulnerabilities
 	replayer.load(0)
+	print "check count ckpt 2: " + str(replayer.check_count)
 	MultiThreadedChecker.reset()
 
 	for i in range(0, replayer.mops_len()):
@@ -200,6 +205,7 @@ def default_checks(alice_args, threads = 1):
 
 	# Finding atomicity vulnerabilities
 	replayer.load(0)
+ 	print "check count ckpt3: " + str(replayer.check_count)
 	MultiThreadedChecker.reset()
 	atomicity_explanations = dict()
 
@@ -252,5 +258,5 @@ def default_checks(alice_args, threads = 1):
 	for vul in staticvuls:
 		print str(time.time() - start_time) + ' (Static vulnerability) Atomicity: ' + \
 			'Operation ' + vul + ' (' + (','.join(staticvuls[vul])) + ')'
-
+	print "check count final: " + str(replayer.check_count)
 	print 'Done finding vulnerabilities.'

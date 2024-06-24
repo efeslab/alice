@@ -21,7 +21,7 @@ make
 # by alice and supplied to the checker. Alice also takes an initial snapshot of
 # the workload directory before beginning the workload. The "traces_dir"
 # argument specifies where all the traces recorded will be stored.
-alice-record --workload_dir workload_dir \
+alice-record --workload_dir /home/jiexiao/squint/alice/alice/example/bug0/workload_dir \
 	--traces_dir traces_dir \
-	./workload /home/jiexiao/squint/alice/alice/example/bug0/workload_dir/testdb
+	./workload /home/jiexiao/squint/alice/alice/example/bug0/workload_dir
 

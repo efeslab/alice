@@ -79,7 +79,7 @@ innocent_syscalls = ["_exit","pread","_newselect","_sysctl","accept","accept4","
 
 innocent_syscalls += ['mtrace_mmap', 'mtrace_munmap', 'mtrace_thread_start']
 
-innocent_syscalls += ['syscall_334', 'prlimit64', 'syscall_318', 'syscall_435', "sync_file_range"]
+innocent_syscalls += ['syscall_334', 'prlimit64', 'syscall_318', 'syscall_435', 'sync_file_range']
 
 # Some system calls have special 64-bit versions. The 64-bit versions
 # are not inherently different from the original versions, and strace
@@ -207,7 +207,7 @@ class FileDescriptorTracker:
 	def new_fd_mapping(self, fd, name, pos, attribs, inode):
 		if fd in self.fd_details:
 			print self.fd_details[fd]
-		assert fd not in self.fd_details
+		# assert fd not in self.fd_details
 		attribs = set(attribs)
 		self.fd_details[fd] = Struct(name = name, pos = pos, attribs = attribs, inode = inode)
 
@@ -433,7 +433,9 @@ def __get_micro_op(syscall_tid, line, stackinfo, mtrace_recorded):
 
 				newly_created = False
 				if not __replayed_stat(name):
-					assert 'O_CREAT' in flags
+					if 'O_CREAT' not in flags:
+						print name
+ 					assert 'O_CREAT' in flags
 					assert 'O_WRONLY' in flags or 'O_RDWR' in flags
 					assert len(fdtracker.get_fds_fname(name)) == 0
 					assert mode
@@ -719,7 +721,7 @@ def __get_micro_op(syscall_tid, line, stackinfo, mtrace_recorded):
 	elif parsed_line.syscall in ['fcntl', 'fcntl64']:
 		fd = safe_string_to_int(parsed_line.args[0])
 		cmd = parsed_line.args[1]
-		assert cmd in ['F_GETFD', 'F_SETFD', 'F_GETFL', 'F_SETFL', 'F_SETLK', 'F_SETLKW', 'F_GETLK', 'F_SETLK64', 'F_SETLKW64', 'F_GETLK64', 'F_DUPFD']
+		assert cmd in ['F_GETFD', 'F_SETFD', 'F_GETFL', 'F_SETFL', 'F_SETLK', 'F_SETLKW', 'F_GETLK', 'F_SETLK64', 'F_SETLKW64', 'F_GETLK64', 'F_DUPFD','0x40c /* F_??? */']
 
 		tracker = None
 		if fdtracker.is_watched(fd):
@@ -925,6 +927,10 @@ def get_micro_ops():
 		if not aliceconfig().ignore_stacktrace:
 			stackinfo_file = open(trace_file[0 : m.start(0)] + '.stackinfo' + trace_file[m.start(0) : ], 'r')
 		for line in f:
+			# print line
+   			# cnotinue if line contains +++ killed by SIGABRT (core dumped) +++  or SIGKILL
+			if re.search(r'\+\+\+ killed by SIGABRT \(core dumped\) \+\+\+', line) or re.search(r'\+\+\+ killed by SIGKILL \+\+\+', line):
+				continue
 			parsed_line = parse_line(line)
 			if parsed_line:
 				# Replace any system calls that have a 32-bit
@@ -950,13 +956,18 @@ def get_micro_ops():
 	
 	os.system("rm -rf " + aliceconfig().scratchpad_dir)
 	os.system("cp -R " + aliceconfig().initial_snapshot + " " + aliceconfig().scratchpad_dir)
-
+	# os.system("cp /home/jiexiao/squint/alice/alice/example/bug2/workload_dir/WT_HOME/WiredTigerLog.0000000001 " + aliceconfig().scratchpad_dir + "/WT_HOME/")
 	path_inode_map = get_path_inode_map(aliceconfig().scratchpad_dir)
 
 	if not aliceconfig().ignore_stacktrace:
 		symtab = pickle.load(open(aliceconfig().strace_file_prefix + '.symtab'))
 	micro_operations = []
 	for row in rows:
+		# If ls contains WT_HOME directory, then copy the WiredTigerLog.0000000001 file to the scratchpad directory
+		# os.system("ls -lR " + aliceconfig().scratchpad_dir)
+		scratchpad_dir = aliceconfig().scratchpad_dir
+		command = "[ -d \"{}/WT_HOME/\" ] && cp /home/jiexiao/squint/alice/alice/example/bug2/workload_dir/WT_HOME/WiredTigerPreplog.0000000001 \"{}/WT_HOME/\"".format(scratchpad_dir, scratchpad_dir)
+		os.system(command)
 		syscall_tid = row[0]
 		line = row[2]
 		stackinfo = row[3]

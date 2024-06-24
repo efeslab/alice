@@ -20,6 +20,8 @@
 
 from alicestruct import Struct
 import math
+import traceback
+import sys
 
 __author__ = "Thanumalayan Sankaranarayana Pillai"
 __copyright__ = "Copyright 2014, Thanumalayan Sankaranarayana Pillai"
@@ -270,7 +272,7 @@ class defaultfs:
 					elif ops[j].op in ['create_dir_entry', 'delete_dir_entry']:
 						if not ops[j].parent == ops[i].inode:
 							continue
-						assert ops[i].hidden_micro_op.hidden_parsed_line.syscall in ['fsync', 'sync']
+						assert ops[i].hidden_micro_op.hidden_parsed_line.syscall in ['fsync', 'sync', "fdatasync"]
 						ops[i].hidden_dependencies.add(j)
 						ops[j].hidden_twojournalfs_stuff.reverse_fsync_dependencies.add(i)
 					else:

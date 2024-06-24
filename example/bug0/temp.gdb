@@ -2,6 +2,9 @@ echo ===\n
 echo 0xaa93a\n
 info line *0xaa93a
 echo ===\n
+echo 0xae98c\n
+info line *0xae98c
+echo ===\n
 echo 0xbf1c2\n
 info line *0xbf1c2
 echo ===\n
