@@ -1,2 +1,8 @@
 *.o
 *.pyc
+/example/
+*.input_stdout
+*.output_stdout
+*.output_stderr
+
+/bugs/

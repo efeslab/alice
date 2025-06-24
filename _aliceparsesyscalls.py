@@ -265,7 +265,7 @@ def __replayed_stat(path):
 		return False
 
 def __parent_inode(path):
-	return __replayed_stat(os.path.dirname(path)).st_ino
+    return __replayed_stat(os.path.dirname(path)).st_ino
 
 def __replayed_truncate(path, new_size):
 	old_mode = writeable_toggle(replayed_path(path))
@@ -505,6 +505,8 @@ def __get_micro_op(syscall_tid, line, stackinfo, mtrace_recorded):
 				assert safe_string_to_int(parsed_line.ret) == count
 				name = fdtracker.get_name(fd)
 				inode = fdtracker.get_inode(fd)
+				if __replayed_stat(name) is False:
+					print name
 				size = __replayed_stat(name).st_size
 				overwrite_size = 0
 				if pos < size:
@@ -928,7 +930,7 @@ def get_micro_ops():
 			stackinfo_file = open(trace_file[0 : m.start(0)] + '.stackinfo' + trace_file[m.start(0) : ], 'r')
 		for line in f:
 			# print line
-   			# cnotinue if line contains +++ killed by SIGABRT (core dumped) +++  or SIGKILL
+   			# continue if line contains +++ killed by SIGABRT (core dumped) +++  or SIGKILL
 			if re.search(r'\+\+\+ killed by SIGABRT \(core dumped\) \+\+\+', line) or re.search(r'\+\+\+ killed by SIGKILL \+\+\+', line):
 				continue
 			parsed_line = parse_line(line)
@@ -953,10 +955,9 @@ def get_micro_ops():
 					rows.append((pid, parsed_line.time, line, stacktrace))
 
 	rows = sorted(rows, key = lambda row: row[1])
-	
 	os.system("rm -rf " + aliceconfig().scratchpad_dir)
 	os.system("cp -R " + aliceconfig().initial_snapshot + " " + aliceconfig().scratchpad_dir)
-	# os.system("cp /home/jiexiao/squint/alice/alice/example/bug2/workload_dir/WT_HOME/WiredTigerLog.0000000001 " + aliceconfig().scratchpad_dir + "/WT_HOME/")
+	# os.system("cp /home/jiexiao/squint/alice/alice/example/bug2/workload_dir/WT_HOME/WiredTigerLog.0000000002 " + aliceconfig().scratchpad_dir + "/WT_HOME/")
 	path_inode_map = get_path_inode_map(aliceconfig().scratchpad_dir)
 
 	if not aliceconfig().ignore_stacktrace:
@@ -966,8 +967,6 @@ def get_micro_ops():
 		# If ls contains WT_HOME directory, then copy the WiredTigerLog.0000000001 file to the scratchpad directory
 		# os.system("ls -lR " + aliceconfig().scratchpad_dir)
 		scratchpad_dir = aliceconfig().scratchpad_dir
-		command = "[ -d \"{}/WT_HOME/\" ] && cp /home/jiexiao/squint/alice/alice/example/bug2/workload_dir/WT_HOME/WiredTigerPreplog.0000000001 \"{}/WT_HOME/\"".format(scratchpad_dir, scratchpad_dir)
-		os.system(command)
 		syscall_tid = row[0]
 		line = row[2]
 		stackinfo = row[3]

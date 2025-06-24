@@ -303,7 +303,6 @@ class Replayer:
 		self.saved = dict()
 		self.fs_initialized = False
   		self.check_count = 0
-		self.log_name = open("report.log", "w")
         
 
 	def print_ops(self, show_diskops = False, show_tids = False, show_time = False):
@@ -341,20 +340,15 @@ class Replayer:
 	def construct_crashed_dir(self, dirname, stdout_file):
 		assert self.fs_initialized
 		to_replay = []
-  		self.check_count += 1
-		checkpoint = 0
+		self.check_count += 1
+		if self.check_count % 50 == 0:
+			print "check_count = " + str(self.check_count) + '\n'
 		for i in range(0, self.__micro_end + 1):
-			checkpoint += 1
-			print "checkpoint " + str(checkpoint)
 			micro_op = self.micro_ops[i]
 			till = self.__disk_end + 1 if self.__micro_end == i else len(micro_op.hidden_disk_ops)
-   			self.log_name.write(str(self.micro_ops[i]) + '\n')
 			for j in range(0, till):
 				if not micro_op.hidden_disk_ops[j].hidden_omitted:
 					to_replay.append(micro_op.hidden_disk_ops[j])
-				# print ops in to_replay
-    			
-				self.log_name.write('\t' + str(self.micro_ops[j]) + '\n')
                 replay_disk_ops(self.path_inode_map, to_replay, dirname, stdout_file, use_cached = False)
 	def get_op(self, i):
 		assert i <= len(self.micro_ops)

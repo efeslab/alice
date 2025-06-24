@@ -111,10 +111,10 @@ def initial_path(name):
 
 # The input parameter must already have gone through original_path()
 def replayed_path(name):
-	if not name.startswith(__aliceconfig.base_path):
-		return False
-	toret = name.replace(__aliceconfig.base_path, __aliceconfig.scratchpad_dir + '/', 1)
-	return re.sub(r'//', r'/', toret)
+    if not name.startswith(__aliceconfig.base_path):
+        return False
+    toret = name.replace(__aliceconfig.base_path, __aliceconfig.scratchpad_dir + '/', 1)
+    return re.sub(r'//', r'/', toret)
 
 def safe_string_to_int(s):
 	try:

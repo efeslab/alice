@@ -55,7 +55,6 @@ class MultiThreadedChecker(threading.Thread):
 		args = [aliceconfig().checker_tool, dirname, dirname + '.input_stdout', self.thread_id]
 		output_stdout = dirname + '.output_stdout'
 		output_stderr = dirname + '.output_stderr'
-
 		retcode = subprocess.call(args, stdout = open(output_stdout, 'w'), stderr = open(output_stderr, 'w'))
 		MultiThreadedChecker.outputs[crashid] = retcode
 		os.system('rm -rf ' + dirname)
@@ -128,7 +127,7 @@ def default_checks(alice_args, threads = 1):
 	start_time = time.time()
  
 	# Finding across-syscall atomicity
-	print "mops len" + str(replayer.mops_len())
+	print "mops len across-syscall" + str(replayer.mops_len())
 	for i in range(0, replayer.mops_len()):
 		dirname = os.path.join(aliceconfig().scratchpad_dir, 'reconstructeddir-' + str(i))
 		replayer.dops_end_at((i, replayer.dops_len(i) - 1))
@@ -140,6 +139,7 @@ def default_checks(alice_args, threads = 1):
 	i = 0
  
 	print "check count ckpt 1: " + str(replayer.check_count)
+	print "mops len" + str(replayer.mops_len())
 	while(i < replayer.mops_len()):
 		if checker_outputs[i] != 0:
 			patch_start = i
@@ -168,7 +168,7 @@ def default_checks(alice_args, threads = 1):
 	replayer.load(0)
 	print "check count ckpt 2: " + str(replayer.check_count)
 	MultiThreadedChecker.reset()
-
+	print "mops len" + str(replayer.mops_len() ** 2)
 	for i in range(0, replayer.mops_len()):
 		if replayer.dops_len(i) == 0 or i in atomic_patch_middle or (i - 1) in atomic_patch_middle:
 			continue
@@ -235,6 +235,7 @@ def default_checks(alice_args, threads = 1):
 
 	checker_outputs = MultiThreadedChecker.wait_and_get_outputs()
 	staticvuls = collections.defaultdict(lambda:dict())
+ 	print "mops len" + str(replayer.mops_len())
 	for i in range(0, replayer.mops_len()):
 		dynamicvuls = dict()
 		for j in range(0, replayer.dops_len(i) - 1):
